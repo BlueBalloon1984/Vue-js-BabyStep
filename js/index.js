@@ -1,29 +1,33 @@
-var vm = new Vue({
-  el: '#demo',
-  data: {
-    firstName: 'Foo',
-    lastName: 'Bbasdar',
-    fullName: 'Foo Bar'
+var watchExampleVM = new Vue({
+    el: '#watch-example',
+    data:{
+    question:' ',
+    answer: 'I cannt give you ananswer until you ask a question!'
   },
-  // watch: {
-  //   firstName: function (val) {
-  //     this.fullName = val + ' ' + this.lastName
-  //   },
-  //   lastName: function (val) {
-  //     this.fullName = this.firstName + ' ' + val
-  //   }
-  // }
-  computed:{
-    fullName: {
-      get: function(){
-        var name=this.firstName+' '+this.lastName
-        return name
-      },
-      set: function (newValue) {
-        var names = newValue.split(' ')
-        this.firstName = names[0]
-        this.lastName = names[names.length - 1]
-      }
+  watch:{
+    question:function(newQusetion){
+    this.answer = 'Waitong for you to stop typing...'
+    this.getAnswer()
     }
+  },
+  method:{
+    getAnswer:  _.debounce(
+      function(){
+        var vm = this;
+        if(this.question.indexOf('?') === -1){
+          vm.answer = 'Question usually contain a question mark.'
+          return
+        }
+        vm.answer = 'Thinking...'
+        axios.get('https://yesno.wtf/api')
+          .then(function (response){
+            vm.answer = _.capitalize(response.data.answer)
+          })
+          .catch(function (error){
+            vm.answer = 'Error!Could not reach the api.'+error
+          })
+      },
+      500
+    )
   }
 })
